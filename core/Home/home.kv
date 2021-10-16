@@ -1,0 +1,157 @@
+#:import hex kivy.utils.get_color_from_hex
+#:import datetime datetime.datetime
+#:import SQLite3 database.SQLite3
+
+<HomeScreen>:
+    ScreenManager:
+        id: screen_manager
+        MDScreen:
+            name: "home"
+            MDBackdrop:
+                id: backdrop
+                left_action_items: [["menu", lambda x: self.open()]]
+                right_action_items: [["circle-edit-outline", lambda x: root.switch("insert")]]
+                title: "Morax"
+                radius_left: "24dp"
+                radius_right: "24dp"
+                on_close: root.load()
+                header_text: "Morax Sales"
+                front_layer_color: "whitesmoke"
+                back_layer_color: "silver"
+
+                MDBackdropBackLayer:
+                    MDCarousel:
+                        BoxLayout:
+                            orientation: "vertical"
+                            Image:
+                                source: "assets/M-icon.jpg"
+                                pos_hint: {"center_x": .5, "center_y": .5}
+                        BoxLayout:
+                            padding: 24
+                            MDCard:
+                                size_hint: .3, .5
+                                pos_hint: {"center_x": .5, "center_y": .5}
+                                ComputeSales:
+
+
+                MDBackdropFrontLayer:
+                    elevation: 24
+                    BoxLayout:
+                        orientation: "vertical"
+                        ScrollView:
+                            MDList:
+                                id: salesList
+
+        MDScreen:
+            name: "insert"
+            BoxLayout:
+                orientation: "vertical"
+                MDIconButton:
+                    icon: "arrow-left-circle"
+                    user_font_size: "40sp"
+                    on_release: root.switch(screen_manager.previous())
+                BoxLayout:
+                    orientation: "vertical"
+                    spacing: 10
+                    MDCard:
+                        size_hint: .5, .5
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        BoxLayout:
+                            padding: 10
+                            orientation: "vertical"
+                            MDLabel:
+                                font_size: "24sp"
+                                text: "Amount"
+                                halign: "left"
+                            MDTextField:
+                                id: insertSales
+                                input_filter: "int"
+                                required: True
+                                helper_text_mode: "on_error"
+                                on_focus: root.checkTrue(self)
+
+                            MDRectangleFlatIconButton:
+                                icon: "calendar-month-outline"
+                                id: dateBtn
+                                text: datetime.now().strftime("%Y-%m-%d")
+                                on_release: root.show_time_picker()
+                                theme_text_color: "Custom"
+                                text_color: 0, 0, 1, 1
+                                line_color: 1, 0, 1, 1
+                                icon_color: 1, 0, 0, 1
+
+
+                    MDFillRoundFlatButton:
+                        text: "Submit"
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        on_release: root.set_error_message() if insertSales.text == "" else root.process(insertSales.text, dateBtn.text)
+
+                    BoxLayout:
+                        ScrollView:
+                            MDList:
+                                id: removeList
+
+
+<ContentCustomSheet>:
+    orientation: "vertical"
+    size_hint_y: None
+    height: "200dp"
+
+    MDToolbar:
+        title: str(datetime.fromtimestamp(int(SQLite3.getDateByRowid(root.rowid))).strftime("%B %d %Y"))
+        right_action_items: [["trash-can-outline", lambda x: root.closeBottomSheet(app)]]
+
+    MDLabel:
+        text: f"Sale: {str(SQLite3.getSale(root.rowid))}"
+        halign: "center"
+        font_size: "24sp"
+        font_style: "H6"
+
+
+<ContentCompute>:
+    orientation: "vertical"
+    padding: 24
+    spacing: 40
+    size_hint_y: None
+    height: "400dp"
+    MDLabel:
+        text: "Compute"
+        halign: "center"
+    MDLabel:
+        text: f"Total:\n{root.info['total']}"
+        halign: "left"
+    MDLabel:
+        text: f"Mayann:\n{root.info['mayann']}"
+        halign: "left"
+    MDLabel:
+        text: f"Nobe:\n{root.info['nobe']}"
+        halign: "left"
+    MDLabel:
+        text: f"Revan:\n{root.info['revan']}"
+        halign: "left"
+    MDLabel:
+        text: f"Earl:\n{root.info['earl']}"
+        halign: "left"
+    MDLabel:
+        text: f"Lei:\n{root.info['lei']}"
+        halign: "left"
+
+<ComputeSales>:
+    orientation: "vertical"
+    padding: 24
+    MDLabel:
+        text: "1st"
+    MDTextField:
+        id: sale1
+        size_hint_x: .5
+        input_filter: "int"
+    MDLabel:
+        text: "2nd"
+    MDTextField:
+        id: sale2
+        size_hint_x: .5
+        input_filter: "int"
+    MDRaisedButton:
+        text: "Compute"
+        helper_text_mode: "on_error"
+        on_release: root.error_text(sale1, sale2) if sale1.text == "" or sale2.text == "" else root.compute(sale1.text, sale2.text)
